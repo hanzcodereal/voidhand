@@ -29,6 +29,7 @@ jobs:
           V="${{ github.event.inputs.version }}"
           sed -i "s/^version:.*/version: ${V}+1/" pubspec.yaml
 
+      - run: flutter clean
       - run: flutter pub get
       - run: flutter build apk --release
 
