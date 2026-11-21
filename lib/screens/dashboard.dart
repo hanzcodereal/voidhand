@@ -114,14 +114,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             child: Row(
               children: [
-                Image.asset(
-                  'assets/logo.png',
-                  width: 48,
-                  height: 48,
-                  errorBuilder: (_, __, ___) => const Icon(
-                    Icons.shield_moon,
-                    color: T.red,
-                    size: 48,
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.asset(
+                    'assets/logo.png',
+                    width: 54,
+                    height: 54,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      width: 54,
+                      height: 54,
+                      color: T.red.withOpacity(0.2),
+                      child: const Center(
+                        child: Text('LOGO', style: TextStyle(color: T.red, fontSize: 10, fontFamily: T.mono)),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 14),
