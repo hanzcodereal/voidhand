@@ -74,25 +74,6 @@ class _DevicesScreenState extends State<DevicesScreen> {
     }
   }
 
-  Future<void> _genPair() async {
-    try {
-      final d = await Api.post('/api/claim-pair');
-      final newPair = (d['pairId'] ?? '').toString();
-      
-      if (newPair.isNotEmpty) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('my_pair_id', newPair);
-        
-        if (!mounted) return;
-        setState(() {
-          _pair = newPair;
-          _list = [];
-        });
-        _load();
-      }
-    } catch (_) {}
-  }
-
   Future<void> _deleteDevice(String id) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -186,17 +167,7 @@ class _DevicesScreenState extends State<DevicesScreen> {
               ),
             ),
           ),
-          GestureDetector(
-            onTap: _genPair,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: T.red.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.add_rounded, color: T.red, size: 20),
-            ),
-          ),
+          const Icon(Icons.copy_rounded, color: T.red, size: 18),
         ],
       ),
     );
