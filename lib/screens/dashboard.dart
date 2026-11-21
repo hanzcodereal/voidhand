@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../theme.dart';
 import '../api.dart';
 import 'devices.dart';
@@ -45,20 +44,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     } catch (_) {}
   }
 
-  Future<void> _open(String url) async {
-    final uri = Uri.parse(url);
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
-  }
-
   Widget _stat(String label, String val, IconData icon, Color c) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: T.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: c.withOpacity(0.3), width: 1.2),
+        border: Border.all(color: T.red.withOpacity(0.3), width: 1.2),
         boxShadow: [
-          BoxShadow(color: c.withOpacity(0.12), blurRadius: 14),
+          BoxShadow(color: T.red.withOpacity(0.12), blurRadius: 14),
         ],
       ),
       child: Column(
@@ -66,13 +60,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         children: [
           Row(
             children: [
-              Icon(icon, color: c, size: 16),
+              Icon(icon, color: T.red, size: 16),
               const Spacer(),
               Text(
                 label,
-                style: TextStyle(
+                style: const TextStyle(
                   fontFamily: T.mono,
-                  color: c,
+                  color: T.red,
                   fontSize: 9,
                   letterSpacing: 1,
                 ),
@@ -116,18 +110,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.asset(
-                    'assets/logo.png',
+                  child: SizedBox(
                     width: 54,
                     height: 54,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      width: 54,
-                      height: 54,
-                      color: T.red.withOpacity(0.2),
-                      child: const Center(
-                        child: Text('LOGO', style: TextStyle(color: T.red, fontSize: 10, fontFamily: T.mono)),
-                      ),
+                    child: Image.asset(
+                      'assets/logo.png',
+                      fit: BoxFit.cover,
                     ),
                   ),
                 ),
@@ -170,75 +158,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             childAspectRatio: 1.4,
             children: [
               _stat('ONLINE', '$_online', FontAwesomeIcons.wifi, T.red),
-              _stat('TOTAL', '$_total', FontAwesomeIcons.mobileScreen, T.white),
+              _stat('TOTAL', '$_total', FontAwesomeIcons.mobileScreen, T.red),
               _stat('ACTIVE', '$_fps', FontAwesomeIcons.cube, T.red),
-              _stat('VERSION', '1.0.0', FontAwesomeIcons.code, T.white),
+              _stat('VERSION', '1.0.0', FontAwesomeIcons.code, T.red),
             ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: _footer(
-                  'TELEGRAM',
-                  FontAwesomeIcons.telegram,
-                  () => _open('https://t.me/hanzdev'),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _footer(
-                  'SUPPORT',
-                  FontAwesomeIcons.solidHeart,
-                  () => _open('https://saweria.co/hanzreally'),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Center(
-            child: Text(
-              'hanzzcodee@gmail.com',
-              style: TextStyle(
-                fontFamily: T.ui,
-                color: T.faint,
-                fontSize: 11,
-                letterSpacing: 1,
-              ),
-            ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _footer(String label, IconData icon, VoidCallback fn) {
-    return GestureDetector(
-      onTap: fn,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: T.card,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: T.red.withOpacity(0.35)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: T.red, size: 14),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                fontFamily: T.mono,
-                color: T.white,
-                fontSize: 11,
-                letterSpacing: 1.5,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
