@@ -26,9 +26,3 @@ jobs:
           git add android
           git commit -m "auto generate android folder"
           git push
-
-      - name: Hapus file init ini sendiri
-        run: |
-          git rm .github/workflows/init.yml
-          git commit -m "remove init workflow"
-          git push
