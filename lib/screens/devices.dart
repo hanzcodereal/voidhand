@@ -37,15 +37,20 @@ class _DevicesScreenState extends State<DevicesScreen> {
     final prefs = await SharedPreferences.getInstance();
     String? localPair = prefs.getString('my_pair_id');
 
-    if (localPair == null || localPair.isEmpty) {
-      try {
-        final d = await Api.post('/api/claim-pair');
-        localPair = (d['pairId'] ?? '').toString();
-        if (localPair.isNotEmpty) {
-          await prefs.setString('my_pair_id', localPair);
+    try {
+      final d = await Api.post('/api/claim-pair', body: {
+        'existingPairId': localPair ?? ''
+      });
+      
+      final serverPair = (d['pairId'] ?? '').toString();
+      
+      if (serverPair.isNotEmpty) {
+        if (localPair != serverPair) {
+          await prefs.setString('my_pair_id', serverPair);
         }
-      } catch (_) {}
-    }
+        localPair = serverPair;
+      }
+    } catch (_) {}
 
     if (!mounted) return;
     setState(() {
