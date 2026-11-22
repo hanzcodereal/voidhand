@@ -142,37 +142,45 @@ class _DevicesScreenState extends State<DevicesScreen> {
           const Icon(Icons.link_rounded, color: T.red, size: 22),
           const SizedBox(width: 14),
           Expanded(
-            child: GestureDetector(
-              onTap: _copyPair,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'PAIRID',
-                    style: TextStyle(
-                      fontFamily: T.mono,
-                      color: T.red,
-                      fontSize: 10,
-                      letterSpacing: 2,
-                      fontWeight: FontWeight.bold,
-                    ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'PAIRID',
+                  style: TextStyle(
+                    fontFamily: T.mono,
+                    color: T.red,
+                    fontSize: 10,
+                    letterSpacing: 2,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _pair.isEmpty ? '—' : _pair,
-                    style: const TextStyle(
-                      fontFamily: T.mono,
-                      color: T.white,
-                      fontSize: 15,
-                      letterSpacing: 2,
-                      fontWeight: FontWeight.bold,
-                    ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _pair.isEmpty ? '—' : _pair,
+                  style: const TextStyle(
+                    fontFamily: T.mono,
+                    color: T.white,
+                    fontSize: 15,
+                    letterSpacing: 2,
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-          const Icon(Icons.copy_rounded, color: T.red, size: 18),
+          GestureDetector(
+            onTap: _copyPair,
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: T.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: T.red.withOpacity(0.3)),
+              ),
+              child: const Icon(Icons.copy_rounded, color: T.red, size: 20),
+            ),
+          ),
         ],
       ),
     );
