@@ -172,13 +172,8 @@ class _DevicesScreenState extends State<DevicesScreen> {
           GestureDetector(
             onTap: _copyPair,
             child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: T.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: T.red.withOpacity(0.3)),
-              ),
-              child: const Icon(Icons.copy_rounded, color: T.red, size: 20),
+              padding: const EdgeInsets.all(8),
+              child: const Icon(Icons.copy_rounded, color: T.red, size: 22),
             ),
           ),
         ],
